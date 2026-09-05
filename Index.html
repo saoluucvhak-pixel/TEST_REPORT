@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Quản Lý Báo Cáo HAK</title>
+    <style>
+      body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; padding: 20px; color: #333; }
+      .container { max-width: 850px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+      h2 { text-align: center; color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-bottom: 20px; }
+      h3 { color: #d35400; }
+      label { font-weight: bold; display: block; margin-top: 15px; margin-bottom: 5px; }
+      select, input[type="text"], input[type="email"], input[type="file"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 14px; }
+      button { width: 100%; padding: 12px; background-color: #3498db; color: white; border: none; border-radius: 5px; font-size: 16px; font-weight: bold; margin-top: 20px; cursor: pointer; transition: 0.3s; }
+      button:hover { background-color: #2980b9; }
+      button:disabled { background-color: #95a5a6; cursor: not-allowed; }
+
+      #loginSection, #uploadSection, #adminControlSection { display: none; }
+
+      #msg-box { margin-top: 20px; padding: 10px; border-radius: 5px; text-align: center; font-weight: bold; display: none; }
+      .success { background-color: #d4edda; color: #155724; }
+      .error { background-color: #f8d7da; color: #721c24; }
+      .loading { background-color: #e2e3e5; color: #383d41; }
+      .warning { background-color: #fff3cd; color: #856404; }
+
+      table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+      th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+      th { background-color: #f2f2f2; }
+      .btn-admin { background-color: #28a745; margin-top: 10px; }
+      .btn-lock { background-color: #e74c3c; padding: 5px 10px; font-size: 12px; width: auto; margin: 0; color: white; }
+      .btn-unlock { background-color: #2ecc71; padding: 5px 10px; font-size: 12px; width: auto; margin: 0 0 0 4px; color: white; }
+
+      .checkbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 5px; background: #f9f9f9; padding: 10px; border-radius: 5px; border: 1px solid #ddd; }
+      .checkbox-grid label { font-weight: normal; margin-top: 0; display: inline-block; cursor: pointer; }
+
+      .panel { background: #fdfefe; padding: 15px; border: 1px solid #ebedef; border-radius: 8px; margin-top: 20px; }
+      .hint { font-weight: normal; font-size: 12px; color: #888; margin-top: 4px; }
+
+      .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
+      .stat-card { background: #f9f9f9; border: 1px solid #ddd; border-radius: 8px; padding: 12px; text-align: center; }
+      .stat-card .so { font-size: 26px; font-weight: bold; color: #2c3e50; }
+      .stat-card .nhan { font-size: 12px; color: #777; margin-top: 4px; }
+      .stat-card.canh-bao .so { color: #c0392b; }
+
+      .google-login-btn {
+        background-color: #fff; color: #757575; border: 1px solid #dadce0;
+        display: flex; align-items: center; justify-content: center; font-weight: 600;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor: pointer; transition: background-color 0.3s;
+      }
+      .google-login-btn:hover { background-color: #f8f9fa; }
+      .status-active { color: #27ae60; font-weight: bold; }
+      .status-locked { color: #c0392b; font-weight: bold; text-decoration: line-through; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>📤 HỆ THỐNG QUẢN LÝ BÁO CÁO HAK</h2>
+
+      <!-- MÀN HÌNH ĐĂNG NHẬP -->
+      <div id="loginSection" style="text-align: center; padding: 20px;">
+        <p style="margin-bottom: 20px; color: #555;">Vui lòng nhập Email Google được cấp quyền để truy cập hệ thống:</p>
+        <div style="max-width: 400px; margin: 0 auto; text-align: left;">
+          <label>Email tài khoản Google:</label>
+          <input type="email" id="loginEmailInput" placeholder="ten.nhansu@gmail.com" required>
+          <button onclick="thucHienDangNhap()" class="google-login-btn">🔐 Đăng Nhập Hệ Thống</button>
+        </div>
+      </div>
+
+      <!-- KHU VỰC ĐIỀU HÀNH (Admin / Quản lý / KTTH) -->
+      <div id="adminControlSection">
+        <div class="success" style="padding: 10px; margin-bottom: 15px; border-radius: 5px; text-align: center; display: flex; justify-content: space-between; align-items: center;">
+          <span>Xin chào: <b id="controlEmailDisplay"></b> | Vai trò: <b id="controlRoleDisplay" style="color: #c0392b;"></b></span>
+          <button onclick="dangXuat()" style="background:#e74c3c; margin:0; padding:5px 10px; font-size:12px; width:auto; color: white; border: none; border-radius: 3px; cursor: pointer;">Đăng xuất</button>
+        </div>
+
+        <!-- Dashboard tổng quan - chỉ Admin thấy -->
+        <div class="panel" id="dashboardPanel" style="display:none;">
+          <h3 style="margin-top:0; color:#2c3e50;">📊 TỔNG QUAN HỆ THỐNG</h3>
+          <div class="stat-grid">
+            <div class="stat-card"><div class="so" id="dbChoKTTH">-</div><div class="nhan">Chờ KTTH duyệt</div></div>
+            <div class="stat-card"><div class="so" id="dbChoQuanLy">-</div><div class="nhan">Chờ Quản lý phê duyệt</div></div>
+            <div class="stat-card canh-bao"><div class="so" id="dbTreHan">-</div><div class="nhan">Đang trễ hạn</div></div>
+            <div class="stat-card"><div class="so" id="dbDaDuyetThangNay">-</div><div class="nhan">Đã phê duyệt tháng này</div></div>
+          </div>
+          <div id="dbTheoDonVi" style="margin-top:15px;"></div>
+        </div>
+
+        <!-- Hồ sơ chờ duyệt / phê duyệt -->
+        <div class="panel">
+          <h3 id="tieuDeChoDuyet" style="margin-top:0;">📝 HỒ SƠ CHỜ DUYỆT</h3>
+          <div id="bangChoDuyet">Đang tải...</div>
+        </div>
+
+        <!-- Cấp quyền tài khoản cấp dưới -->
+        <div class="panel">
+          <h3 id="formTitle" style="margin-top: 0;">CẤP QUYỀN TÀI KHOẢN CẤP DƯỚI</h3>
+          <label>Email nhân sự cấp dưới:</label>
+          <input type="email" id="targetEmail" placeholder="nhanvien@gmail.com">
+
+          <label>Nhà máy / Đơn vị phụ trách:</label>
+          <div id="donViContainer"></div>
+
+          <div id="loaiBaoCaoWrapper" style="display:none;">
+            <label>Loại Báo Cáo được phép nộp (Dành cho Nhân viên):</label>
+            <div class="checkbox-grid" id="loaiBaoCaoGroup">
+              <label><input type="checkbox" name="chkLoai" value="THUE_GTGT" checked> Thuế GTGT</label>
+              <label><input type="checkbox" name="chkLoai" value="THUE_TNCN" checked> Thuế TNCN</label>
+              <label><input type="checkbox" name="chkLoai" value="BCTC_NB" checked> BCTC Nội bộ</label>
+              <label><input type="checkbox" name="chkLoai" value="BCTC_THUE" checked> BCTC Thuế</label>
+              <label><input type="checkbox" name="chkLoai" value="LUONG" checked> Lương</label>
+            </div>
+          </div>
+
+          <label>Vai trò được cấp:</label>
+          <select id="targetVaiTro" disabled></select>
+          <button onclick="luuQuyenTruyCap()" id="btnSaveUser" class="btn-admin">Lưu Quyền Truy Cập</button>
+        </div>
+
+        <div class="panel">
+          <h3 style="margin-top: 0;">DANH SÁCH PHÂN QUYỀN TRỰC THUỘC</h3>
+          <div id="userTableContainer">Đang tải danh sách...</div>
+        </div>
+
+        <!-- Kiểm tra tình trạng hồ sơ (phục vụ hợp nhất) -->
+        <div class="panel">
+          <h3 style="margin-top:0; color:#2980b9;">📋 KIỂM TRA TÌNH TRẠNG HỒ SƠ (phục vụ hợp nhất)</h3>
+          <label>Loại báo cáo:</label>
+          <select id="checkLoaiBaoCao">
+            <option value="BCTC_NB">BCTC Nội bộ</option>
+            <option value="BCTC_THUE">BCTC Thuế</option>
+            <option value="THUE_GTGT">Thuế GTGT</option>
+            <option value="THUE_TNCN">Thuế TNCN</option>
+          </select>
+          <label>Năm:</label>
+          <select id="checkNam"></select>
+          <label>Kỳ báo cáo:</label>
+          <select id="checkKy">
+            <option value="Tháng 1">Tháng 1</option><option value="Tháng 2">Tháng 2</option><option value="Tháng 3">Tháng 3</option><option value="Tháng 4">Tháng 4</option>
+            <option value="Tháng 5">Tháng 5</option><option value="Tháng 6">Tháng 6</option><option value="Tháng 7">Tháng 7</option><option value="Tháng 8">Tháng 8</option>
+            <option value="Tháng 9">Tháng 9</option><option value="Tháng 10">Tháng 10</option><option value="Tháng 11">Tháng 11</option><option value="Tháng 12">Tháng 12</option>
+            <option value="Quý 1">Quý 1</option><option value="Quý 2">Quý 2</option><option value="Quý 3">Quý 3</option><option value="Quý 4">Quý 4</option>
+          </select>
+          <button onclick="kiemTraThieuHoSo()" class="btn-admin">Kiểm tra tình trạng nộp</button>
+          <div id="ketQuaThieuHoSo" style="margin-top:15px;"></div>
+        </div>
+      </div>
+
+      <!-- KHU VỰC NHÂN VIÊN TẢI BÁO CÁO -->
+      <div id="uploadSection">
+        <div class="success" style="padding: 10px; margin-bottom: 15px; border-radius: 5px; text-align: center; display: flex; justify-content: space-between; align-items: center;">
+          <span>Xin chào: <b id="userEmailDisplay"></b> | Đơn vị: <b id="unitDisplay"></b></span>
+          <button onclick="dangXuat()" style="background:#e74c3c; margin:0; padding:5px 10px; font-size:12px; width:auto; color: white; border: none; border-radius: 3px; cursor: pointer;">Đăng xuất</button>
+        </div>
+
+        <form id="uploadForm" onsubmit="handleFormSubmit(event)">
+          <label>Chọn đơn vị nộp báo cáo:</label>
+          <select name="donVi" id="donViUploadSelect" required></select>
+
+          <label>Loại báo cáo:</label>
+          <select name="loaiBaoCao" id="loaiBaoCaoSelect" required></select>
+
+          <div id="maHoSoWrapper" style="display:none;">
+            <label>Hồ sơ đang nộp (chọn đúng loại hồ sơ con):</label>
+            <select id="maHoSoSelect" name="maHoSo"></select>
+          </div>
+
+          <label>Năm tài chính:</label>
+          <select name="nam" id="namSelect" required></select>
+
+          <label>Kỳ báo cáo:</label>
+          <select name="kyBaoCao" id="kyBaoCaoSelect" required>
+            <option value="Tháng 1">Tháng 1</option><option value="Tháng 2">Tháng 2</option><option value="Tháng 3">Tháng 3</option><option value="Tháng 4">Tháng 4</option>
+            <option value="Tháng 5">Tháng 5</option><option value="Tháng 6">Tháng 6</option><option value="Tháng 7">Tháng 7</option><option value="Tháng 8">Tháng 8</option>
+            <option value="Tháng 9">Tháng 9</option><option value="Tháng 10">Tháng 10</option><option value="Tháng 11">Tháng 11</option><option value="Tháng 12">Tháng 12</option>
+            <option value="Quý 1">Quý 1</option><option value="Quý 2">Quý 2</option><option value="Quý 3">Quý 3</option><option value="Quý 4">Quý 4</option>
+          </select>
+
+          <label>Tệp báo cáo đính kèm (Có thể chọn nhiều file cùng lúc):</label>
+          <input type="file" name="myFile" id="myFileInput"
+                 accept=".pdf,.xls,.xlsx,.doc,.docx,.xml,.csv,.zip,.jpg,.jpeg,.png"
+                 multiple required>
+          <div class="hint">Chỉ chấp nhận: PDF, Word, Excel, XML, CSV, ZIP, ảnh JPG/PNG — tối đa 15MB/file, 30MB/lượt nộp.</div>
+          <div class="hint" id="fileSizeHint"></div>
+
+          <button type="submit" id="btnSubmit">Tải Lên Hệ Thống</button>
+        </form>
+      </div>
+
+      <div id="msg-box"></div>
+    </div>
+
+    <script>
+      var currentUserInfo = null;
+      var GIOI_HAN_MB_MOI_FILE_CLIENT = 15;
+      var GIOI_HAN_MB_TONG_CLIENT = 30;
+
+      /* ---------------------------------------------------------
+         TIỆN ÍCH CHUNG
+         --------------------------------------------------------- */
+      function showMsg(type, text) {
+        var box = document.getElementById('msg-box');
+        box.style.display = 'block';
+        box.className = type;
+        box.innerHTML = text;
+      }
+
+      function taoDanhSachNamChoSelect(selectId) {
+        var namHienTai = new Date().getFullYear();
+        var el = document.getElementById(selectId);
+        if (!el) return;
+        el.innerHTML = "";
+        for (var i = namHienTai - 1; i <= namHienTai + 3; i++) {
+          var option = document.createElement("option");
+          option.value = i; option.text = i;
+          if (i === namHienTai) option.selected = true;
+          el.appendChild(option);
+        }
+      }
+
+      function taoDanhSachThang() {
+        var currentMonth = new Date().getMonth() + 1;
+        var selectKy = document.getElementById('kyBaoCaoSelect');
+        if (selectKy) selectKy.value = "Tháng " + currentMonth;
+      }
+
+      /* ---------------------------------------------------------
+         KHỞI ĐỘNG
+         --------------------------------------------------------- */
+      window.onload = function () {
+        taoDanhSachNamChoSelect('namSelect');
+        taoDanhSachNamChoSelect('checkNam');
+        taoDanhSachThang();
+
+        google.script.run
+          .withSuccessHandler(function (emailGoogle) {
+            if (emailGoogle) { kiemTraDangNhap(emailGoogle); return; }
+            var savedEmail = localStorage.getItem('hak_user_email');
+            if (savedEmail) kiemTraDangNhap(savedEmail);
+            else document.getElementById('loginSection').style.display = "block";
+          })
+          .withFailureHandler(function () {
+            var savedEmail = localStorage.getItem('hak_user_email');
+            if (savedEmail) kiemTraDangNhap(savedEmail);
+            else document.getElementById('loginSection').style.display = "block";
+          })
+          .layEmailHienHanhTuGoogle();
+      };
+
+      function thucHienDangNhap() {
+        var email = document.getElementById('loginEmailInput').value.trim();
+        if (!email) { alert("Vui lòng nhập Email!"); return; }
+        kiemTraDangNhap(email);
+      }
+
+      function kiemTraDangNhap(email) {
+        showMsg("loading", "Đang xác thực quyền truy cập...");
+        google.script.run
+          .withSuccessHandler(function (res) {
+            document.getElementById('msg-box').style.display = "none";
+            document.getElementById('loginSection').style.display = "none";
+
+            if (res.success) {
+              localStorage.setItem('hak_user_email', res.email);
+              currentUserInfo = res;
+
+              if (res.vaiTro === "Admin" || res.vaiTro === "Quản lý" || res.vaiTro === "KTTH") {
+                document.getElementById('adminControlSection').style.display = "block";
+                document.getElementById('controlEmailDisplay').innerText = res.email;
+                document.getElementById('controlRoleDisplay').innerText = res.vaiTro;
+
+                if (res.vaiTro === "Admin") {
+                  document.getElementById('dashboardPanel').style.display = "block";
+                  taiThongKeTongQuan();
+                }
+
+                var vaiTroSelect = document.getElementById('targetVaiTro');
+                var dvContainer = document.getElementById('donViContainer');
+                var lcWrapper = document.getElementById('loaiBaoCaoWrapper');
+
+                if (res.vaiTro === "Admin") {
+                  vaiTroSelect.innerHTML = '<option value="Quản lý" selected>Quản lý</option>';
+                  lcWrapper.style.display = "none";
+                  dvContainer.className = "checkbox-grid";
+                  dvContainer.innerHTML =
+                    '<label><input type="checkbox" name="chkDonVi" value="HAK_DN"> HAK_DN</label>' +
+                    '<label><input type="checkbox" name="chkDonVi" value="CNHAK_QS"> CNHAK_QS</label>' +
+                    '<label><input type="checkbox" name="chkDonVi" value="HAKQN_QC"> HAKQN_QC</label>' +
+                    '<label><input type="checkbox" name="chkDonVi" value="DAIHIEP_DH"> DAIHIEP_DH</label>';
+                } else if (res.vaiTro === "Quản lý") {
+                  vaiTroSelect.innerHTML = '<option value="KTTH" selected>KTTH</option>';
+                  lcWrapper.style.display = "none";
+                  var htmlDv = '<select id="selectDonViSingle" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px;">';
+                  res.donVi.split(",").forEach(function (dv) { htmlDv += '<option value="' + dv.trim() + '">' + dv.trim() + '</option>'; });
+                  htmlDv += '</select>';
+                  dvContainer.innerHTML = htmlDv;
+                } else if (res.vaiTro === "KTTH") {
+                  vaiTroSelect.innerHTML = '<option value="Nhân viên" selected>Nhân viên</option>';
+                  lcWrapper.style.display = "block";
+                  dvContainer.innerHTML = '<input type="text" id="txtDonViFixed" value="' + res.donVi + '" disabled style="background:#e9ecef; font-weight:bold;">';
+                }
+                taiDanhSachNhanVien();
+                taiDanhSachChoDuyet();
+              } else {
+                document.getElementById('uploadSection').style.display = "block";
+                document.getElementById('userEmailDisplay').innerText = res.email;
+                document.getElementById('unitDisplay').innerText = res.donVi;
+
+                var selectDonVi = document.getElementById('donViUploadSelect');
+                selectDonVi.innerHTML = '<option value="' + res.donVi + '">' + res.donVi + '</option>';
+
+                var selectLoai = document.getElementById('loaiBaoCaoSelect');
+                selectLoai.innerHTML = "";
+                var dsGoc = [
+                  { val: "THUE_GTGT", text: "Thuế GTGT" }, { val: "THUE_TNCN", text: "Thuế TNCN" },
+                  { val: "BCTC_NB", text: "BCTC Nội bộ" }, { val: "BCTC_THUE", text: "BCTC Thuế" },
+                  { val: "LUONG", text: "Bảng lương" }
+                ];
+                dsGoc.forEach(function (item) {
+                  if (res.quyenBaoCao.includes("ALL") || res.quyenBaoCao.includes(item.val)) {
+                    var opt = document.createElement("option");
+                    opt.value = item.val; opt.text = item.text;
+                    selectLoai.appendChild(opt);
+                  }
+                });
+                if (selectLoai.value) taiDanhMucHoSo(selectLoai.value);
+              }
+            } else {
+              localStorage.removeItem('hak_user_email');
+              document.getElementById('loginSection').style.display = "block";
+              showMsg("error", res.message);
+            }
+          })
+          .xacThucEmailThuCong(email);
+      }
+
+      function dangXuat() {
+        localStorage.removeItem('hak_user_email');
+        location.reload();
+      }
+
+      /* ---------------------------------------------------------
+         DASHBOARD TỔNG QUAN (Admin)
+         --------------------------------------------------------- */
+      function taiThongKeTongQuan() {
+        google.script.run
+          .withSuccessHandler(function (tk) {
+            document.getElementById('dbChoKTTH').innerText = tk.choKTTH;
+            document.getElementById('dbChoQuanLy').innerText = tk.choQuanLy;
+            document.getElementById('dbTreHan').innerText = tk.treHanDangXuLy;
+            document.getElementById('dbDaDuyetThangNay').innerText = tk.daPheDuyetThangNay;
+
+            var html = "<table><tr><th>Đơn vị</th><th>Đang trễ hạn</th><th>Đang chờ xử lý</th></tr>";
+            tk.theoDonVi.forEach(function (dv) {
+              html += "<tr><td><b>" + dv.donVi + "</b></td><td>" + dv.treHan + "</td><td>" + dv.dangChoXuLy + "</td></tr>";
+            });
+            html += "</table>";
+            document.getElementById('dbTheoDonVi').innerHTML = html;
+          })
+          .layThongKeTongQuan();
+      }
+
+      /* ---------------------------------------------------------
+         PHÂN QUYỀN NGƯỜI DÙNG
+         --------------------------------------------------------- */
+      function luuQuyenTruyCap() {
+        var email = document.getElementById('targetEmail').value;
+        var vaiTro = document.getElementById('targetVaiTro').value;
+        var donViStr = "", loaiBaoCaoStr = "ALL";
+
+        if (currentUserInfo.vaiTro === "Admin") {
+          var arrDv = [];
+          document.querySelectorAll('input[name="chkDonVi"]:checked').forEach(function (cb) { arrDv.push(cb.value); });
+          donViStr = arrDv.join(",");
+        } else if (currentUserInfo.vaiTro === "Quản lý") {
+          var sel = document.getElementById('selectDonViSingle');
+          donViStr = sel ? sel.value : "";
+        } else if (currentUserInfo.vaiTro === "KTTH") {
+          var txt = document.getElementById('txtDonViFixed');
+          donViStr = txt ? txt.value : "";
+          var arrLc = [];
+          document.querySelectorAll('input[name="chkLoai"]:checked').forEach(function (cb) { arrLc.push(cb.value); });
+          loaiBaoCaoStr = arrLc.length === 5 ? "ALL" : arrLc.join(",");
+        }
+
+        if (email.trim() === "") { showMsg("error", "Vui lòng nhập Email nhân sự!"); return; }
+        if (!donViStr || donViStr.trim() === "") { showMsg("error", "Vui lòng chọn đơn vị nhà máy!"); return; }
+
+        showMsg("loading", "Đang xử lý phân quyền...");
+        google.script.run
+          .withSuccessHandler(function (msg) {
+            showMsg("success", msg);
+            document.getElementById('targetEmail').value = "";
+            taiDanhSachNhanVien();
+          })
+          .withFailureHandler(function (err) { showMsg("error", "❌ " + err.message); })
+          .capNhatHoacThemPhanQuyen(currentUserInfo.email, email, donViStr, loaiBaoCaoStr, vaiTro);
+      }
+
+      function taiDanhSachNhanVien() {
+        google.script.run
+          .withSuccessHandler(function (htmlTable) { document.getElementById('userTableContainer').innerHTML = htmlTable; })
+          .layDanhSachTaiKhoan(currentUserInfo.email);
+      }
+
+      function doiTrangThaiTaiKhoan(email, trangThaiHienTai) {
+        var trangThaiMoi = (trangThaiHienTai === 'Hoạt động') ? 'Khóa' : 'Hoạt động';
+        var textConfirm = (trangThaiMoi === 'Khóa')
+          ? "CẢNH BÁO: Bạn có chắc muốn KHÓA tài khoản " + email + "?\nToàn bộ nhân sự cấp dưới trực thuộc cũng sẽ bị khóa theo!"
+          : "Bạn muốn MỞ KHÓA cho tài khoản " + email + " và cấp dưới của họ?";
+        if (confirm(textConfirm)) {
+          showMsg("loading", "Đang áp dụng thay đổi trạng thái bậc thang...");
+          google.script.run
+            .withSuccessHandler(function (msg) { showMsg("success", msg); taiDanhSachNhanVien(); })
+            .withFailureHandler(function (err) { showMsg("error", "❌ " + err.message); })
+            .thayDoiTrangThaiTaiKhoan(currentUserInfo.email, email, trangThaiMoi);
+        }
+      }
+
+      /* ---------------------------------------------------------
+         DANH MỤC HỒ SƠ CON KHI NỘP
+         --------------------------------------------------------- */
+      document.getElementById('loaiBaoCaoSelect').addEventListener('change', function () {
+        taiDanhMucHoSo(this.value);
+      });
+
+      function taiDanhMucHoSo(loaiBaoCao) {
+        var wrapper = document.getElementById('maHoSoWrapper');
+        var select = document.getElementById('maHoSoSelect');
+        google.script.run
+          .withSuccessHandler(function (list) {
+            select.innerHTML = "";
+            if (!list || list.length === 0) { wrapper.style.display = "none"; return; }
+            list.forEach(function (item) {
+              var opt = document.createElement("option");
+              opt.value = item.maHoSo;
+              opt.text = item.tenHoSo + (item.batBuoc ? " (*)" : " (tùy chọn)");
+              select.appendChild(opt);
+            });
+            wrapper.style.display = "block";
+          })
+          .layDanhSachHoSoTheoLoai(loaiBaoCao);
+      }
+
+      /* ---------------------------------------------------------
+         NỘP HỒ SƠ - cảnh báo dung lượng trước khi tải (server vẫn tự
+         chặn cứng nếu vượt giới hạn dù client bỏ qua cảnh báo này)
+         --------------------------------------------------------- */
+      document.getElementById('myFileInput').addEventListener('change', function () {
+        var hint = document.getElementById('fileSizeHint');
+        var tongMB = 0, fileQuaLon = [];
+        for (var i = 0; i < this.files.length; i++) {
+          var mb = this.files[i].size / (1024 * 1024);
+          tongMB += mb;
+          if (mb > GIOI_HAN_MB_MOI_FILE_CLIENT) fileQuaLon.push(this.files[i].name);
+        }
+        var canhBao = [];
+        if (fileQuaLon.length) canhBao.push("⛔ Các file sau vượt " + GIOI_HAN_MB_MOI_FILE_CLIENT + "MB, sẽ bị từ chối: " + fileQuaLon.join(", "));
+        if (tongMB > GIOI_HAN_MB_TONG_CLIENT) canhBao.push("⛔ Tổng dung lượng " + tongMB.toFixed(1) + "MB vượt " + GIOI_HAN_MB_TONG_CLIENT + "MB/lượt, sẽ bị từ chối.");
+        hint.innerHTML = canhBao.join("<br>");
+        hint.style.color = "#c0392b";
+      });
+
+      function handleFormSubmit(event) {
+        event.preventDefault();
+        var form = document.getElementById('uploadForm');
+        var btn = document.getElementById('btnSubmit');
+        var donVi = document.getElementById('donViUploadSelect').value;
+        var loaiBaoCao = document.getElementById('loaiBaoCaoSelect').value;
+        var maHoSo = document.getElementById('maHoSoSelect') ? document.getElementById('maHoSoSelect').value : "";
+        var nam = document.getElementById('namSelect').value;
+        var kyBaoCao = document.getElementById('kyBaoCaoSelect').value;
+        var emailNguoiGoi = localStorage.getItem('hak_user_email');
+
+        var files = document.getElementById('myFileInput').files;
+        if (files.length === 0) { showMsg("error", "Vui lòng chọn ít nhất 1 tệp báo cáo!"); return; }
+
+        btn.disabled = true;
+        showMsg("loading", "Đang tải lên " + files.length + " file. Vui lòng đợi...");
+        var fileDataArray = [];
+        var filesProcessed = 0;
+
+        for (var i = 0; i < files.length; i++) {
+          (function (file) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+              fileDataArray.push({ name: file.name, mimeType: file.type, size: file.size, data: e.target.result.split(",")[1] });
+              filesProcessed++;
+              if (filesProcessed === files.length) {
+                google.script.run
+                  .withSuccessHandler(function (response) {
+                    btn.disabled = false;
+                    if (response.success) {
+                      showMsg("success", response.message);
+                      form.reset();
+                      taoDanhSachNamChoSelect('namSelect');
+                      taoDanhSachThang();
+                      document.getElementById('fileSizeHint').innerHTML = "";
+                    } else { showMsg("error", response.message); }
+                  })
+                  .withFailureHandler(function (err) { btn.disabled = false; showMsg("error", "❌ " + err.message); })
+                  .uploadMultipleFiles(emailNguoiGoi, donVi, loaiBaoCao, nam, kyBaoCao, fileDataArray, maHoSo);
+              }
+            };
+            reader.readAsDataURL(file);
+          })(files[i]);
+        }
+      }
+
+      /* ---------------------------------------------------------
+         DUYỆT / PHÊ DUYỆT (KTTH & Quản lý)
+         --------------------------------------------------------- */
+      function taiDanhSachChoDuyet() {
+        if (!currentUserInfo) return;
+        var tieuDe = document.getElementById('tieuDeChoDuyet');
+        var box = document.getElementById('bangChoDuyet');
+
+        if (currentUserInfo.vaiTro === "KTTH") tieuDe.innerText = "📝 HỒ SƠ CHỜ KTTH DUYỆT";
+        else if (currentUserInfo.vaiTro === "Quản lý") tieuDe.innerText = "📝 HỒ SƠ CHỜ QUẢN LÝ PHÊ DUYỆT";
+        else { box.innerHTML = "<i>Vai trò Admin không tham gia bước duyệt hồ sơ.</i>"; return; }
+
+        google.script.run
+          .withSuccessHandler(function (list) {
+            if (!list || list.length === 0) { box.innerHTML = "<i>Không có hồ sơ nào đang chờ xử lý.</i>"; return; }
+            var html = "<table><tr><th>Đơn vị</th><th>Báo cáo</th><th>Kỳ</th><th>File</th><th>Mẫu</th><th>Hạn nộp</th><th>Ghi chú</th><th>Thao tác</th></tr>";
+            list.forEach(function (hs) {
+              html += "<tr>";
+              html += "<td>" + hs.donVi + "</td>";
+              html += "<td>" + hs.loaiBaoCao + (hs.maHoSo ? " (" + hs.maHoSo + ")" : "") + "</td>";
+              html += "<td>" + hs.kyBaoCao + "/" + hs.nam + "</td>";
+              html += "<td><a href='" + hs.linkFile + "' target='_blank'>" + hs.tenFile + "</a></td>";
+              html += "<td>" + hs.trangThaiMau + "</td>";
+              html += "<td>" + hs.hanNop + (hs.trangThaiHan === 'Trễ hạn' ? " <span class='status-locked' style='text-decoration:none'>⚠ Trễ hạn</span>" : "") + "</td>";
+              html += "<td><input type='text' id='ghiChu_" + hs.idGiaoDich + "' placeholder='Ghi chú' style='width:110px; padding:4px;'></td>";
+              html += "<td><button class='btn-unlock' onclick=\"xuLyDuyet('" + hs.idGiaoDich + "','Duyệt')\">Duyệt</button>" +
+                      "<button class='btn-lock' onclick=\"xuLyDuyet('" + hs.idGiaoDich + "','Từ chối')\">Từ chối</button></td>";
+              html += "</tr>";
+            });
+            html += "</table>";
+            box.innerHTML = html;
+          })
+          .layDanhSachChoDuyet(currentUserInfo.email);
+      }
+
+      function xuLyDuyet(idGiaoDich, ketQua) {
+        var ghiChuEl = document.getElementById('ghiChu_' + idGiaoDich);
+        var ghiChu = ghiChuEl ? ghiChuEl.value : "";
+        var textConfirm = ketQua === "Duyệt" ? "Xác nhận DUYỆT hồ sơ này?" : "Xác nhận TỪ CHỐI, yêu cầu nhân viên nộp lại?";
+        if (!confirm(textConfirm)) return;
+
+        showMsg("loading", "Đang xử lý...");
+        var onOk = function (msg) {
+          showMsg("success", msg);
+          taiDanhSachChoDuyet();
+          if (currentUserInfo.vaiTro === "Admin") taiThongKeTongQuan();
+        };
+        var onFail = function (err) { showMsg("error", "❌ " + err.message); };
+
+        if (currentUserInfo.vaiTro === "KTTH") {
+          google.script.run.withSuccessHandler(onOk).withFailureHandler(onFail)
+            .ktthDuyetHoSo(currentUserInfo.email, idGiaoDich, ketQua, ghiChu);
+        } else if (currentUserInfo.vaiTro === "Quản lý") {
+          google.script.run.withSuccessHandler(onOk).withFailureHandler(onFail)
+            .quanLyPheDuyet(currentUserInfo.email, idGiaoDich, ketQua, ghiChu);
+        }
+      }
+
+      /* ---------------------------------------------------------
+         KIỂM TRA TÌNH TRẠNG HỒ SƠ (phục vụ hợp nhất)
+         --------------------------------------------------------- */
+      function kiemTraThieuHoSo() {
+        var loaiBaoCao = document.getElementById('checkLoaiBaoCao').value;
+        var nam = document.getElementById('checkNam').value;
+        var ky = document.getElementById('checkKy').value;
+
+        document.getElementById('ketQuaThieuHoSo').innerHTML = "Đang kiểm tra...";
+        google.script.run
+          .withSuccessHandler(function (ketQua) {
+            var html = "<table><tr><th>Đơn vị</th><th>Tình trạng</th><th>Hồ sơ còn thiếu</th></tr>";
+            ketQua.forEach(function (dv) {
+              html += "<tr><td><b>" + dv.donVi + "</b></td>";
+              html += "<td>" + (dv.daDu
+                ? "<span class='status-active'>✔ Đã đủ hồ sơ</span>"
+                : "<span class='status-locked' style='text-decoration:none;'>⚠ Còn thiếu " + dv.danhSachThieu.length + " hồ sơ</span>") + "</td>";
+              html += "<td style='text-align:left;'>" + (dv.danhSachThieu.length ? dv.danhSachThieu.join(", ") : "-") + "</td></tr>";
+            });
+            html += "</table>";
+            document.getElementById('ketQuaThieuHoSo').innerHTML = html;
+          })
+          .layTongHopThieuHoSoHopNhat(loaiBaoCao, nam, ky);
+      }
+    </script>
+  </body>
+</html>
