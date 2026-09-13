@@ -210,7 +210,7 @@
         var el = document.getElementById(selectId);
         if (!el) return;
         el.innerHTML = "";
-        for (var i = namHienTai - 1; i <= namHienTai + 3; i++) {
+        for (var i = namHienTai - 5; i <= namHienTai + 1; i++) {
           var option = document.createElement("option");
           option.value = i; option.text = i;
           if (i === namHienTai) option.selected = true;
