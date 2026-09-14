@@ -6,51 +6,51 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hệ Thống Quản Lý Báo Cáo HAK</title>
     <style>
-      body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; padding: 20px; color: #333; }
+      body { font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif; background-color: #f3f4f6; padding: 20px; color: #333; }
       .container { max-width: 850px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-      h2 { text-align: center; color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-bottom: 20px; }
-      h3 { color: #d35400; }
+      h2 { text-align: center; color: #1f2937; border-bottom: 2px solid #2563eb; padding-bottom: 10px; margin-bottom: 20px; }
+      h3 { color: #b45309; }
       label { font-weight: bold; display: block; margin-top: 15px; margin-bottom: 5px; }
-      select, input[type="text"], input[type="email"], input[type="file"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 14px; }
-      button { width: 100%; padding: 12px; background-color: #3498db; color: white; border: none; border-radius: 5px; font-size: 16px; font-weight: bold; margin-top: 20px; cursor: pointer; transition: 0.3s; }
-      button:hover { background-color: #2980b9; }
+      select, input[type="text"], input[type="email"], input[type="file"] { width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 5px; box-sizing: border-box; font-size: 14px; }
+      button { width: 100%; padding: 12px; background-color: #2563eb; color: white; border: none; border-radius: 5px; font-size: 16px; font-weight: bold; margin-top: 20px; cursor: pointer; transition: 0.3s; }
+      button:hover { background-color: #2563eb; }
       button:disabled { background-color: #95a5a6; cursor: not-allowed; }
 
       #loginSection, #uploadSection, #adminControlSection { display: none; }
 
       #msg-box { margin-top: 20px; padding: 10px; border-radius: 5px; text-align: center; font-weight: bold; display: none; }
-      .success { background-color: #d4edda; color: #155724; }
-      .error { background-color: #f8d7da; color: #721c24; }
+      .success { background-color: #dcfce7; color: #16a34a; }
+      .error { background-color: #fee2e2; color: #dc2626; }
       .loading { background-color: #e2e3e5; color: #383d41; }
-      .warning { background-color: #fff3cd; color: #856404; }
+      .warning { background-color: #fef3c7; color: #b45309; }
 
       table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
-      th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-      th { background-color: #f2f2f2; }
-      .btn-admin { background-color: #28a745; margin-top: 10px; }
-      .btn-lock { background-color: #e74c3c; padding: 5px 10px; font-size: 12px; width: auto; margin: 0; color: white; }
-      .btn-unlock { background-color: #2ecc71; padding: 5px 10px; font-size: 12px; width: auto; margin: 0 0 0 4px; color: white; }
+      th, td { border: 1px solid #e5e7eb; padding: 8px; text-align: center; }
+      th { background-color: #f3f4f6; }
+      .btn-admin { background-color: #16a34a; margin-top: 10px; }
+      .btn-lock { background-color: #dc2626; padding: 5px 10px; font-size: 12px; width: auto; margin: 0; color: white; }
+      .btn-unlock { background-color: #16a34a; padding: 5px 10px; font-size: 12px; width: auto; margin: 0 0 0 4px; color: white; }
 
-      .checkbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 5px; background: #f9f9f9; padding: 10px; border-radius: 5px; border: 1px solid #ddd; }
+      .checkbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 5px; background: #f3f4f6; padding: 10px; border-radius: 5px; border: 1px solid #e5e7eb; }
       .checkbox-grid label { font-weight: normal; margin-top: 0; display: inline-block; cursor: pointer; }
 
-      .panel { background: #fdfefe; padding: 15px; border: 1px solid #ebedef; border-radius: 8px; margin-top: 20px; }
+      .panel { background: #ffffff; padding: 15px; border: 1px solid #e5e7eb; border-radius: 8px; margin-top: 20px; }
       .hint { font-weight: normal; font-size: 12px; color: #888; margin-top: 4px; }
 
       .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
-      .stat-card { background: #f9f9f9; border: 1px solid #ddd; border-radius: 8px; padding: 12px; text-align: center; }
-      .stat-card .so { font-size: 26px; font-weight: bold; color: #2c3e50; }
+      .stat-card { background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; text-align: center; }
+      .stat-card .so { font-size: 26px; font-weight: bold; color: #1f2937; }
       .stat-card .nhan { font-size: 12px; color: #777; margin-top: 4px; }
-      .stat-card.canh-bao .so { color: #c0392b; }
+      .stat-card.canh-bao .so { color: #dc2626; }
 
       .google-login-btn {
-        background-color: #fff; color: #757575; border: 1px solid #dadce0;
+        background-color: #fff; color: #757575; border: 1px solid #e5e7eb;
         display: flex; align-items: center; justify-content: center; font-weight: 600;
         box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor: pointer; transition: background-color 0.3s;
       }
-      .google-login-btn:hover { background-color: #f8f9fa; }
-      .status-active { color: #27ae60; font-weight: bold; }
-      .status-locked { color: #c0392b; font-weight: bold; text-decoration: line-through; }
+      .google-login-btn:hover { background-color: #f3f4f6; }
+      .status-active { color: #16a34a; font-weight: bold; }
+      .status-locked { color: #dc2626; font-weight: bold; text-decoration: line-through; }
     </style>
   </head>
   <body>
@@ -70,13 +70,13 @@
       <!-- KHU VỰC ĐIỀU HÀNH (Admin / Quản lý / KTTH) -->
       <div id="adminControlSection">
         <div class="success" style="padding: 10px; margin-bottom: 15px; border-radius: 5px; text-align: center; display: flex; justify-content: space-between; align-items: center;">
-          <span>Xin chào: <b id="controlEmailDisplay"></b> | Vai trò: <b id="controlRoleDisplay" style="color: #c0392b;"></b></span>
-          <button onclick="dangXuat()" style="background:#e74c3c; margin:0; padding:5px 10px; font-size:12px; width:auto; color: white; border: none; border-radius: 3px; cursor: pointer;">Đăng xuất</button>
+          <span>Xin chào: <b id="controlEmailDisplay"></b> | Vai trò: <b id="controlRoleDisplay" style="color: #dc2626;"></b></span>
+          <button onclick="dangXuat()" style="background:#dc2626; margin:0; padding:5px 10px; font-size:12px; width:auto; color: white; border: none; border-radius: 3px; cursor: pointer;">Đăng xuất</button>
         </div>
 
         <!-- Dashboard tổng quan - chỉ Admin thấy -->
         <div class="panel" id="dashboardPanel" style="display:none;">
-          <h3 style="margin-top:0; color:#2c3e50;">📊 TỔNG QUAN HỆ THỐNG</h3>
+          <h3 style="margin-top:0; color:#1f2937;">📊 TỔNG QUAN HỆ THỐNG</h3>
           <div class="stat-grid">
             <div class="stat-card"><div class="so" id="dbChoKTTH">-</div><div class="nhan">Chờ KTTH duyệt</div></div>
             <div class="stat-card"><div class="so" id="dbChoQuanLy">-</div><div class="nhan">Chờ Quản lý phê duyệt</div></div>
@@ -124,7 +124,7 @@
 
         <!-- Kiểm tra tình trạng hồ sơ (phục vụ hợp nhất) -->
         <div class="panel">
-          <h3 style="margin-top:0; color:#2980b9;">📋 KIỂM TRA TÌNH TRẠNG HỒ SƠ (phục vụ hợp nhất)</h3>
+          <h3 style="margin-top:0; color:#2563eb;">📋 KIỂM TRA TÌNH TRẠNG HỒ SƠ (phục vụ hợp nhất)</h3>
           <label>Loại báo cáo:</label>
           <select id="checkLoaiBaoCao">
             <option value="BCTC_NB">BCTC Nội bộ</option>
@@ -150,7 +150,7 @@
       <div id="uploadSection">
         <div class="success" style="padding: 10px; margin-bottom: 15px; border-radius: 5px; text-align: center; display: flex; justify-content: space-between; align-items: center;">
           <span>Xin chào: <b id="userEmailDisplay"></b> | Đơn vị: <b id="unitDisplay"></b></span>
-          <button onclick="dangXuat()" style="background:#e74c3c; margin:0; padding:5px 10px; font-size:12px; width:auto; color: white; border: none; border-radius: 3px; cursor: pointer;">Đăng xuất</button>
+          <button onclick="dangXuat()" style="background:#dc2626; margin:0; padding:5px 10px; font-size:12px; width:auto; color: white; border: none; border-radius: 3px; cursor: pointer;">Đăng xuất</button>
         </div>
 
         <form id="uploadForm" onsubmit="handleFormSubmit(event)">
@@ -290,14 +290,14 @@
                 } else if (res.vaiTro === "Quản lý") {
                   vaiTroSelect.innerHTML = '<option value="KTTH" selected>KTTH</option>';
                   lcWrapper.style.display = "none";
-                  var htmlDv = '<select id="selectDonViSingle" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px;">';
+                  var htmlDv = '<select id="selectDonViSingle" style="width:100%; padding:10px; border:1px solid #e5e7eb; border-radius:5px;">';
                   res.donVi.split(",").forEach(function (dv) { htmlDv += '<option value="' + dv.trim() + '">' + dv.trim() + '</option>'; });
                   htmlDv += '</select>';
                   dvContainer.innerHTML = htmlDv;
                 } else if (res.vaiTro === "KTTH") {
                   vaiTroSelect.innerHTML = '<option value="Nhân viên" selected>Nhân viên</option>';
                   lcWrapper.style.display = "block";
-                  dvContainer.innerHTML = '<input type="text" id="txtDonViFixed" value="' + res.donVi + '" disabled style="background:#e9ecef; font-weight:bold;">';
+                  dvContainer.innerHTML = '<input type="text" id="txtDonViFixed" value="' + res.donVi + '" disabled style="background:#e5e7eb; font-weight:bold;">';
                 }
                 taiDanhSachNhanVien();
                 taiDanhSachChoDuyet();
@@ -458,7 +458,7 @@
         if (fileQuaLon.length) canhBao.push("⛔ Các file sau vượt " + GIOI_HAN_MB_MOI_FILE_CLIENT + "MB, sẽ bị từ chối: " + fileQuaLon.join(", "));
         if (tongMB > GIOI_HAN_MB_TONG_CLIENT) canhBao.push("⛔ Tổng dung lượng " + tongMB.toFixed(1) + "MB vượt " + GIOI_HAN_MB_TONG_CLIENT + "MB/lượt, sẽ bị từ chối.");
         hint.innerHTML = canhBao.join("<br>");
-        hint.style.color = "#c0392b";
+        hint.style.color = "#dc2626";
       });
 
       function handleFormSubmit(event) {
